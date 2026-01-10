@@ -68,6 +68,14 @@ const Signup = () => {
                     className="relative"
                   />
                 </div>
+                <div>
+                  <Input
+                    name="institute"
+                    label="Institute Name"
+                    placeholder="Enter your Institute Name"
+                    className="relative"
+                  />
+                </div>
                 {/* <div className="flex items-start">
                   <div className="flex-shrink-0">
                     <input
