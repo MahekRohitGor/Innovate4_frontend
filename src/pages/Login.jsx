@@ -1,6 +1,6 @@
 import Input from "../components/Input";
 import Button from "../components/Button";
-import leafImage from "../assets/leaf.jpg";
+import leafImage from "../assets/final_logo.png";
 import { useNavigate } from "react-router-dom";
 import HeaderwoLogo from "../components/HeaderwoLogo";
 import { useEffect } from "react";
@@ -34,7 +34,7 @@ const Login = () => {
                     <div className="flex flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8 lg:py-0">
                         <div className="w-full max-w-md space-y-8">
                             <div className="text-center">
-                                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-4">
+                                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">
                                     Welcome Back
                                 </h1>
                                 <p className="text-lg text-gray-600 max-w-sm mx-auto">
@@ -60,7 +60,7 @@ const Login = () => {
                                     />
                                 </div>
                                 <div className="text-right">
-                                    <a href="/forgot-password" className="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors duration-200">
+                                    <a href="/forgot-password" className="text-sm font-semibold text-sky-600 hover:text-blue-700 transition-colors duration-200">
                                         Forgot password?
                                     </a>
                                 </div>
@@ -71,7 +71,7 @@ const Login = () => {
                                 <div className="text-center">
                                     <p className="text-sm text-gray-600">
                                         New here?{' '}
-                                        <a href="/signup" className="font-semibold text-green-600 hover:text-green-700 transition-colors duration-200">
+                                        <a href="/signup" className="font-semibold text-blue-600 hover:text-sky-700 transition-colors duration-200">
                                             Create Account
                                         </a>
                                     </p>

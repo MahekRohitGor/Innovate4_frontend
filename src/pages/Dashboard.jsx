@@ -1,8 +1,11 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { getDashboardData } from "../features/dashboard/dashboardThunk";
 import HeaderwoLogo from "../components/HeaderwoLogo";
+import { discussionItems } from "../data/discussionItems";
+import JiraModal from "../components/JiraModal";
+
 import {
   ArrowTrendingUpIcon,
   UsersIcon,
@@ -25,42 +28,127 @@ const colorMap = {
   red: "from-rose-500 via-red-500 to-orange-500",
 };
 
-const SidebarPanel = () => (
-  <div className="sticky top-24 space-y-8">
-    <div className="glass-card-xl">
-      <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-4">
-        Productivity
-      </p>
-      <h3 className="text-xl font-bold text-slate-800 mb-4">
-        Assigned Tasks
-      </h3>
+const NextMeetingCalendar = () => {
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
 
-      <div className="p-4 rounded-xl bg-slate-50 text-sm text-slate-600 text-center">
-        No tasks assigned yet
+  const handleSubmit = () => {
+    if (!date || !time) {
+      alert("Please select both date and time");
+      return;
+    }
+
+    const payload = {
+      meeting_date: date,
+      meeting_time: time,
+    };
+
+    console.log("Next Meeting Scheduled:", payload);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Date */}
+      <div className="space-y-1">
+        <label className="text-sm font-semibold text-slate-600">
+          Select Date
+        </label>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-white/80 backdrop-blur focus:ring-2 focus:ring-indigo-400 outline-none transition"
+        />
       </div>
 
+      {/* Time */}
+      <div className="space-y-1">
+        <label className="text-sm font-semibold text-slate-600">
+          Select Time
+        </label>
+        <input
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl border border-indigo-200 bg-white/80 backdrop-blur focus:ring-2 focus:ring-indigo-400 outline-none transition"
+        />
+      </div>
+
+      {/* Submit */}
       <button
-        disabled
-        className="mt-6 w-full py-2 rounded-xl bg-slate-200 text-slate-500 font-semibold cursor-not-allowed"
+        onClick={handleSubmit}
+        className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-sky-500 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
       >
-        Raise Jira Ticket
+        Schedule Meeting
       </button>
     </div>
+  );
+}
 
-    <div className="glass-card-xl">
-      <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-4">
-        Schedule
-      </p>
-      <h3 className="text-xl font-bold text-slate-800 mb-4">
-        Google Calendar
-      </h3>
+const SidebarPanel = () => {
+  const [selectedTask, setSelectedTask] = useState(null);
 
-      <div className="h-40 flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 font-medium">
-        Calendar coming soon
+  const jiraTasks = discussionItems.filter(
+    (item) => item.jira_recommended === "yes"
+  );
+
+  return (
+    <>
+      <div className="sticky top-24 space-y-8">
+        <div className="glass-card-xl">
+          <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-4">
+            Productivity
+          </p>
+          <h3 className="text-xl font-bold text-slate-800 mb-6">
+            Jira Recommended Tasks
+          </h3>
+
+          <div className="space-y-4">
+            {jiraTasks.map((task, idx) => (
+              <div
+                key={idx}
+                className="p-4 rounded-xl bg-slate-50 border border-slate-200"
+              >
+                <h4 className="text-sm font-bold text-slate-800 mb-1">
+                  {task.title}
+                </h4>
+                <p className="text-xs text-slate-600 mb-3 line-clamp-2">
+                  {task.description}
+                </p>
+
+                <button
+                  onClick={() => setSelectedTask(task)}
+                  className="w-full py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition"
+                >
+                  Raise Jira Ticket
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="glass-card-xl space-y-6">
+          <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold">
+            Next Meeting Schedule
+          </p>
+
+          <h3 className="text-xl font-bold text-slate-800">
+            Calendar
+          </h3>
+
+          <NextMeetingCalendar />
+        </div>
       </div>
-    </div>
-  </div>
-);
+
+      {selectedTask && (
+        <JiraModal
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+        />
+      )}
+    </>
+  );
+};
 
 const MetricCard = ({ title, value, icon: Icon, color }) => (
   <div
@@ -86,7 +174,7 @@ const MetricCard = ({ title, value, icon: Icon, color }) => (
 
 const SummaryCard = ({ title, children }) => (
   <div className="glass-card-xl hover:-translate-y-1 transition-all duration-300">
-    <h2 className="text-xl font-black text-emerald-700 mb-4">{title}</h2>
+    <h2 className="text-xl font-black text-indigo-700 mb-4">{title}</h2>
     <p className="text-slate-700 leading-relaxed">{children}</p>
   </div>
 );
@@ -123,7 +211,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg font-semibold text-emerald-600">
+        <p className="text-lg font-semibold text-indigo-600">
           Loading dashboard…
         </p>
       </div>
@@ -160,16 +248,15 @@ const Dashboard = () => {
       <div className="min-h-screen bg-hero-gradient p-6 md:p-12">
         <div className="max-w-7xl mx-auto grid grid-cols-12 gap-8">
 
-          {/* LEFT : 3/4 */}
           <div className="col-span-12 lg:col-span-9 space-y-12">
             <div className="relative">
-              <h1 className="text-3xl font-black text-emerald-700 mb-3">
+              <h1 className="text-3xl font-black text-indigo-700 mb-3">
                 Meeting Dashboard
               </h1>
               <p className="text-slate-600 font-medium">
                 AI-powered meeting analytics & insights
               </p>
-              <ChartBarIcon className="absolute top-0 right-0 w-20 h-20 text-emerald-300 opacity-40" />
+              <ChartBarIcon className="absolute top-0 right-0 w-20 h-20 text-indigo-300 opacity-40" />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">

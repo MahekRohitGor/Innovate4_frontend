@@ -27,14 +27,18 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-    .addCase(signup.pending, (state) => {
+      .addCase(signup.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(signup.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
-        state.isAuthenticated = true;
+        if (action.payload.success) {
+          state.user = action.payload.data;
+          state.isAuthenticated = true;
+        } else {
+          state.error = action.payload.message;
+        }
       })
       .addCase(signup.rejected, (state, action) => {
         state.loading = false;
@@ -48,15 +52,15 @@ const userSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         console.log("Login fulfilled action payload:", action.payload);
-        if(action.payload.data.success === true){
-            state.user = action.payload.data.email;
-            state.token = action.payload.data.data.token;
-            localStorage.setItem("token", JSON.stringify(action.payload.data.data.token));
-            state.isLogin = true;
-        } else{
-            state.user = null;
-            state.token = null;
-            state.error = action.payload?.message || "Login failed";
+        if (action.payload.data.success === true) {
+          state.user = action.payload.data.email;
+          state.token = action.payload.data.data.token;
+          localStorage.setItem("token", JSON.stringify(action.payload.data.data.token));
+          state.isLogin = true;
+        } else {
+          state.user = null;
+          state.token = null;
+          state.error = action.payload?.message || "Login failed";
         }
       })
       .addCase(login.rejected, (state, action) => {

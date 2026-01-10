@@ -7,6 +7,7 @@ import MeetingDetails from "../pages/MeetingDetails";
 import Dashboard from "../pages/Dashboard";
 import ProtectedRoute from "./ProtectedRoutes";
 import Home from "../pages/Home";
+import GoogleCallback from "../pages/GoogleCallback";
 
 const AppRoutes = () => (
   <Routes>
@@ -15,6 +16,7 @@ const AppRoutes = () => (
     <Route path="/signup" element={<Signup />} />
     <Route path="/login" element={<Login />} />
     <Route path="/home" element={<Home />} />
+    <Route path="/google/callback" element={<GoogleCallback />} />
 
     {/* Protected Routes */}
     <Route
