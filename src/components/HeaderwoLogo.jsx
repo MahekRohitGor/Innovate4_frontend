@@ -1,4 +1,4 @@
-import logo from "../assets/logo.svg";
+import logo from "../assets/round_logo.png";
 import { Link } from "react-router-dom";
 
 const HeaderwoLogo = () => {
@@ -15,27 +15,21 @@ const HeaderwoLogo = () => {
             />
           </Link>
           <div className="flex flex-col">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-700 via-emerald-600 to-teal-600 bg-clip-text text-transparent drop-shadow-sm leading-tight">
-              Meeting.AI
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-900 via-blue-700 to-sky-400 bg-clip-text text-transparent drop-shadow-sm leading-tight">
+              S.A.I.L
             </h1>
-            <span className="text-xs sm:text-sm text-green-600 font-medium tracking-wide opacity-90">
+            <span className="text-xs sm:text-sm text-blue-600 font-medium tracking-wide opacity-90">
               AI-Powered Meetings
             </span>
           </div>
         </div>
-        
+
         <div className="hidden md:flex items-center gap-2 text-sm text-gray-600 font-medium">
-          <Link 
-            to="/" 
-            className="px-3 py-2 rounded-lg hover:bg-green-50 hover:text-green-700 transition-all duration-200 border border-transparent hover:border-green-200"
+          <Link
+            to="/home"
+            className="px-3 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 border border-transparent hover:border-blue-200"
           >
-            Features
-          </Link>
-          <Link 
-            to="/" 
-            className="px-3 py-2 rounded-lg hover:bg-green-50 hover:text-green-700 transition-all duration-200 border border-transparent hover:border-green-200"
-          >
-            Pricing
+            Home
           </Link>
         </div>
       </div>

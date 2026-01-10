@@ -1,0 +1,74 @@
+{
+  "hero": {
+    "headlinePrimary": "Turn Meetings",
+    "headlineSecondary": "into Actionable Intelligence",
+    "description": "S.A.I.L (Smart AI Listening) analyzes your meeting recordings using AI to deliver engagement insights, speaker analytics, summaries, and actionable feedback — automatically.",
+    "ctaPrimary": {
+      "text": "Get Started",
+      "route": "/calendar"
+    },
+    "ctaSecondary": {
+      "text": "View Demo",
+      "route": "/calendar"
+    },
+    "infoCard": {
+      "title": "What S.A.I.L Understands",
+      "points": [
+        "Speaker balance & dominance",
+        "Engagement & silence levels",
+        "Conflict & off-topic detection",
+        "Meeting ROI & effectiveness",
+        "Clear summaries & improvements"
+      ]
+    }
+  },
+
+  "howItWorks": {
+    "title": "How S.A.I.L Works",
+    "steps": [
+      {
+        "step": "01",
+        "title": "Upload Meeting",
+        "description": "Upload your meeting’s audio or video recording securely.",
+        "image": "upload.png"
+      },
+      {
+        "step": "02",
+        "title": "AI Processing",
+        "description": "S.A.I.L transcribes speech, identifies speakers, and analyzes behavior.",
+        "image": "analytics.png"
+      },
+      {
+        "step": "03",
+        "title": "Insights Generated",
+        "description": "Engagement, silence, conflict, and performance metrics are generated.",
+        "image": "summary.png"
+      },
+      {
+        "step": "04",
+        "title": "Actionable Dashboard",
+        "description": "View everything in a powerful, visual analytics dashboard.",
+        "image": "feedback.png"
+      }
+    ]
+  },
+
+  "features": {
+    "title": "Why Teams Use S.A.I.L",
+    "list": [
+      "AI-powered meeting intelligence",
+      "Speaker balance & engagement metrics",
+      "Automatic meeting summaries",
+      "Actionable improvement feedback",
+      "Conflict & silence detection",
+      "Meeting ROI measurement"
+    ]
+  },
+
+  "cta": {
+    "title": "Make Every Meeting Count",
+    "description": "Stop guessing what happened in meetings. Let S.A.I.L show you the truth.",
+    "buttonText": "Start Using S.A.I.L",
+    "route": "/signup"
+  }
+}

@@ -6,13 +6,15 @@ import Calendar from "../pages/Calender";
 import MeetingDetails from "../pages/MeetingDetails";
 import Dashboard from "../pages/Dashboard";
 import ProtectedRoute from "./ProtectedRoutes";
+import Home from "../pages/Home";
 
 const AppRoutes = () => (
   <Routes>
     {/* Public Routes */}
-    <Route path="/" element={<Signup />} />
+    {/* <Route path="/" element={<Signup />} /> */}
     <Route path="/signup" element={<Signup />} />
     <Route path="/login" element={<Login />} />
+    <Route path="/home" element={<Home />} />
 
     {/* Protected Routes */}
     <Route
@@ -25,7 +27,7 @@ const AppRoutes = () => (
     />
 
     <Route
-      path="/meeting/:meetingId"
+      path="/meeting/:id"
       element={
         <ProtectedRoute>
           <MeetingDetails />
@@ -34,7 +36,7 @@ const AppRoutes = () => (
     />
 
     <Route
-      path="/dashboard/:meetingId"
+      path="/dashboard/:id"
       element={
         <ProtectedRoute>
           <Dashboard />
@@ -43,6 +45,7 @@ const AppRoutes = () => (
     />
 
     {/* Fallback */}
+    <Route path="/" element={<Navigate to="/calendar" replace />} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
 );
