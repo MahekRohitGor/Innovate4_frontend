@@ -64,19 +64,19 @@ const SummaryCard = ({ title, children }) => (
 
 /* ---------------- FEEDBACK ---------------- */
 
-const FeedbackCard = ({ children }) => (
-  <div className="glass-card-warning hover:-translate-y-1 transition-all">
-    <div className="flex items-center gap-3 mb-5">
-      <div className="p-3 rounded-xl bg-amber-500 text-white">
-        <ExclamationTriangleIcon className="w-6 h-6" />
-      </div>
-      <h2 className="text-xl font-black text-amber-800">
-        Suggested Improvements
-      </h2>
-    </div>
-    <div className="space-y-3">{children}</div>
-  </div>
-);
+// const FeedbackCard = ({ children }) => (
+//   <div className="glass-card-warning hover:-translate-y-1 transition-all">
+//     <div className="flex items-center gap-3 mb-5">
+//       <div className="p-3 rounded-xl bg-amber-500 text-white">
+//         <ExclamationTriangleIcon className="w-6 h-6" />
+//       </div>
+//       <h2 className="text-xl font-black text-amber-800">
+//         Suggested Improvements
+//       </h2>
+//     </div>
+//     <div className="space-y-3">{children}</div>
+//   </div>
+// );
 
 const FeedbackItem = ({ children }) => (
   <div className="p-4 rounded-xl bg-white/70 border border-amber-200 text-slate-800">
@@ -286,11 +286,11 @@ const Dashboard = () => {
               </button>
             </div>
 
-            <FeedbackCard>
+            {/* <FeedbackCard>
               {(metrics.improvements || []).map((item, idx) => (
                 <FeedbackItem key={idx}>{item}</FeedbackItem>
               ))}
-            </FeedbackCard>
+            </FeedbackCard> */}
           </div>
 
           <div className="col-span-12 lg:col-span-3">
