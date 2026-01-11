@@ -6,8 +6,14 @@ export const getMeetingTasks = createAsyncThunk(
   async (meetingId, { rejectWithValue }) => {
     try {
       const res = await fetchMeetingTasks(meetingId);
-      console.log("Fetched Meeting Tasks:", res);
-      return res.data.data.meetingTasks[0]?.discussion_items || [];
+      const data = res.data.data;
+
+      return {
+        discussionItems:
+          data.meetingTasks?.[0]?.discussion_items || [],
+        shortSummary: data.shortSummary || "",
+        longSummary: data.longSummary || "",
+      };
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || err.message

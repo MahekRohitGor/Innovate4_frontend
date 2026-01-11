@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import HeaderwoLogo from "../components/HeaderwoLogo";
-import { discussionItems } from "../data/discussionItems";
 import JiraModal from "../components/JiraModal";
 import { getMeetingMetrics } from "../features/metrics/metricsThunk";
 import MeetingChatbot from "../components/MeetingChatbot";
@@ -35,7 +34,7 @@ const colorMap = {
 /* ---------------- METRIC CARD ---------------- */
 
 const MetricCard = ({ title, value, icon: Icon, color }) => (
-  <div className="glass-card-lg hover:-translate-y-2 transition-all duration-500">
+  <div className="glass-card-lg hover:-translate-y-2 transition-all duration-500 border p-3 rounded-xl">
     <div className="flex items-start justify-between">
       <div
         className={`p-4 rounded-2xl bg-gradient-to-br ${colorMap[color]} text-white shadow-xl`}
@@ -89,8 +88,8 @@ const FeedbackItem = ({ children }) => (
 const SidebarPanel = () => {
   const [selectedTask, setSelectedTask] = useState(null);
 
-  const jiraTasks = discussionItems.filter(
-    (item) => item.jira_recommended === "yes"
+  const { discussionItems, loading } = useSelector(
+    (state) => state.tasks
   );
 
   return (
@@ -102,24 +101,32 @@ const SidebarPanel = () => {
           </p>
 
           <h3 className="text-xl font-bold text-slate-800 mb-6">
-            Jira Recommended Tasks
+            Discussion Items
           </h3>
 
-          <div className="space-y-4">
-            {jiraTasks.map((task, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-xl bg-slate-50 border border-slate-200"
-              >
-                <h4 className="text-sm font-bold text-slate-800 mb-1">
-                  {task.title}
-                </h4>
+          {loading ? (
+            <p className="text-sm text-slate-500">Loading tasks…</p>
+          ) : discussionItems.length === 0 ? (
+            <p className="text-sm text-slate-500">
+              No discussion items found.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {discussionItems.map((task, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 rounded-xl bg-slate-50 border border-slate-200"
+                >
+                  <h4 className="text-sm font-bold text-slate-800 mb-1">
+                    {task.title}
+                  </h4>
 
-                <p className="text-xs text-slate-600 mb-3 line-clamp-2">
-                  {task.description}
-                </p>
+                  <p className="text-xs text-slate-600 mb-3 line-clamp-3">
+                    {task.description}
+                  </p>
 
-                {task.jira_recommended === "yes" && (
+                  {/* ✅ ONLY SHOW BUTTON IF YES */}
+                  {task.jira_recommended === "yes" && (
                     <button
                       onClick={() => setSelectedTask(task)}
                       className="w-full py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition"
@@ -127,14 +134,18 @@ const SidebarPanel = () => {
                       Raise Jira Ticket
                     </button>
                   )}
-              </div>
-            ))}
-          </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {selectedTask && (
-        <JiraModal task={selectedTask} onClose={() => setSelectedTask(null)} />
+        <JiraModal
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+        />
       )}
     </>
   );
@@ -148,6 +159,10 @@ const Dashboard = () => {
 
   const { data: metrics, loading, error } = useSelector(
     (state) => state.metrics
+  );
+
+  const { shortSummary, longSummary } = useSelector(
+    (state) => state.tasks
   );
 
   useEffect(() => {
@@ -220,11 +235,11 @@ const Dashboard = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <SummaryCard title="Short Summary">
-                {metrics.short_summary || "—"}
+                {shortSummary || "—"}
               </SummaryCard>
 
               <SummaryCard title="Detailed Summary">
-                {metrics.long_summary || "—"}
+                {longSummary || "—"}
               </SummaryCard>
             </div>
 
