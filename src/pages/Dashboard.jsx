@@ -7,6 +7,8 @@ import { getMeetingMetrics } from "../features/metrics/metricsThunk";
 import MeetingChatbot from "../components/MeetingChatbot";
 import { getMeetingTasks } from "../features/tasks/taskThunk";
 import { downloadMom } from "../services/momApi";
+import { raiseJiraTicket } from "../services/jiraApi";
+
 
 import {
   ArrowTrendingUpIcon,
@@ -87,70 +89,82 @@ const FeedbackItem = ({ children }) => (
 /* ---------------- SIDEBAR ---------------- */
 
 const SidebarPanel = () => {
-  const [selectedTask, setSelectedTask] = useState(null);
+  const { id: meetingId } = useParams();
 
   const { discussionItems, loading } = useSelector(
     (state) => state.tasks
   );
 
+  const [submittingId, setSubmittingId] = useState(null);
+
+  const handleRaiseJira = async () => {
+    try {
+      console.log("Raising Jira ticket for task:", meetingId);
+      setSubmittingId(meetingId)
+      await raiseJiraTicket(meetingId);
+      alert("Jira ticket raised successfully");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to raise Jira ticket");
+    } finally {
+      setSubmittingId(null);
+    }
+  };
+
   return (
-    <>
-      <div className="sticky top-24 space-y-8">
-        <div className="glass-card-xl">
-          <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-4">
-            Productivity
+    <div className="sticky top-24 space-y-8">
+      <div className="glass-card-xl">
+        <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-4">
+          Productivity
+        </p>
+
+        <h3 className="text-xl font-bold text-slate-800 mb-6">
+          Discussion Items
+        </h3>
+
+        {loading ? (
+          <p className="text-sm text-slate-500">Loading tasks…</p>
+        ) : discussionItems.length === 0 ? (
+          <p className="text-sm text-slate-500">
+            No discussion items found.
           </p>
+        ) : (
+          <div className="space-y-4">
+            {discussionItems.map((task) => (
+              <div
+                key={task._id}
+                className="p-4 rounded-xl bg-slate-50 border border-slate-200"
+              >
+                <h4 className="text-sm font-bold text-slate-800 mb-1">
+                  {task.title}
+                </h4>
 
-          <h3 className="text-xl font-bold text-slate-800 mb-6">
-            Discussion Items
-          </h3>
+                <p className="text-xs text-slate-600 mb-3 line-clamp-3">
+                  {task.description}
+                </p>
 
-          {loading ? (
-            <p className="text-sm text-slate-500">Loading tasks…</p>
-          ) : discussionItems.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              No discussion items found.
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {discussionItems.map((task, idx) => (
-                <div
-                  key={idx}
-                  className="p-4 rounded-xl bg-slate-50 border border-slate-200"
-                >
-                  <h4 className="text-sm font-bold text-slate-800 mb-1">
-                    {task.title}
-                  </h4>
-
-                  <p className="text-xs text-slate-600 mb-3 line-clamp-3">
-                    {task.description}
-                  </p>
-
-                  {/* ✅ ONLY SHOW BUTTON IF YES */}
-                  {task.jira_recommended === "yes" && (
-                    <button
-                      onClick={() => setSelectedTask(task)}
-                      className="w-full py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition"
-                    >
-                      Raise Jira Ticket
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                {task.jira_recommended === "yes" && (
+                  <button
+                    onClick={() => handleRaiseJira(task._id)}
+                    disabled={submittingId === task._id}
+                    className="w-full py-2 rounded-lg bg-indigo-600 text-white
+                      text-sm font-semibold hover:bg-indigo-700 transition
+                      disabled:opacity-60"
+                  >
+                    {submittingId === task._id
+                      ? "Creating Ticket…"
+                      : "Raise Jira Ticket"}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-
-      {selectedTask && (
-        <JiraModal
-          task={selectedTask}
-          onClose={() => setSelectedTask(null)}
-        />
-      )}
-    </>
+    </div>
   );
 };
+
 
 /* ---------------- DASHBOARD ---------------- */
 
@@ -216,7 +230,7 @@ const Dashboard = () => {
       setDownloading(true);
 
       const res = await downloadMom(meetingId);
-      const momFileUrl = res?.data?.momFileUrl;
+      const momFileUrl = res?.data?.data?.momFileUrl;
 
       if (!momFileUrl) {
         alert("MOM file not available yet");

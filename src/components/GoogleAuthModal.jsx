@@ -33,12 +33,12 @@ const GoogleAuthModal = ({ userId, onClose }) => {
           Continue with Google
         </button>
 
-        <button
+        {/* <button
           onClick={onClose}
           className="mt-4 text-sm text-slate-500 hover:underline"
         >
           Do this later
-        </button>
+        </button> */}
       </div>
     </div>
   );
