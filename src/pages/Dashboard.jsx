@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { getDashboardData } from "../features/dashboard/dashboardThunk";
 import HeaderwoLogo from "../components/HeaderwoLogo";
 import { discussionItems } from "../data/discussionItems";
 import JiraModal from "../components/JiraModal";
+import { getMeetingMetrics } from "../features/metrics/metricsThunk";
 
 import {
   ArrowTrendingUpIcon,
@@ -18,6 +18,8 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
+/* ---------------- COLORS ---------------- */
+
 const colorMap = {
   green: "from-emerald-500 via-teal-500 to-cyan-500",
   blue: "from-sky-500 via-indigo-500 to-purple-500",
@@ -28,62 +30,59 @@ const colorMap = {
   red: "from-rose-500 via-red-500 to-orange-500",
 };
 
-const NextMeetingCalendar = () => {
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
+/* ---------------- METRIC CARD ---------------- */
 
-  const handleSubmit = () => {
-    if (!date || !time) {
-      alert("Please select both date and time");
-      return;
-    }
-
-    const payload = {
-      meeting_date: date,
-      meeting_time: time,
-    };
-
-    console.log("Next Meeting Scheduled:", payload);
-  };
-
-  return (
-    <div className="space-y-4">
-      {/* Date */}
-      <div className="space-y-1">
-        <label className="text-sm font-semibold text-slate-600">
-          Select Date
-        </label>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border border-emerald-200 bg-white/80 backdrop-blur focus:ring-2 focus:ring-indigo-400 outline-none transition"
-        />
-      </div>
-
-      {/* Time */}
-      <div className="space-y-1">
-        <label className="text-sm font-semibold text-slate-600">
-          Select Time
-        </label>
-        <input
-          type="time"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border border-indigo-200 bg-white/80 backdrop-blur focus:ring-2 focus:ring-indigo-400 outline-none transition"
-        />
-      </div>
-
-      {/* Submit */}
-      <button
-        onClick={handleSubmit}
-        className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-sky-500 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
+const MetricCard = ({ title, value, icon: Icon, color }) => (
+  <div className="glass-card-lg hover:-translate-y-2 transition-all duration-500">
+    <div className="flex items-start justify-between">
+      <div
+        className={`p-4 rounded-2xl bg-gradient-to-br ${colorMap[color]} text-white shadow-xl`}
       >
-        Schedule Meeting
-      </button>
+        <Icon className="w-7 h-7" />
+      </div>
+
+      <div className="text-right">
+        <p className="text-xs text-slate-500 font-semibold">{title}</p>
+        <h3 className="text-xl font-black text-slate-900">
+          {value ?? "—"}
+        </h3>
+      </div>
     </div>
-  );
-}
+  </div>
+);
+
+/* ---------------- SUMMARY ---------------- */
+
+const SummaryCard = ({ title, children }) => (
+  <div className="glass-card-xl hover:-translate-y-1 transition-all">
+    <h2 className="text-lg font-black text-indigo-700 mb-4">{title}</h2>
+    <p className="text-slate-700 leading-relaxed">{children}</p>
+  </div>
+);
+
+/* ---------------- FEEDBACK ---------------- */
+
+const FeedbackCard = ({ children }) => (
+  <div className="glass-card-warning hover:-translate-y-1 transition-all">
+    <div className="flex items-center gap-3 mb-5">
+      <div className="p-3 rounded-xl bg-amber-500 text-white">
+        <ExclamationTriangleIcon className="w-6 h-6" />
+      </div>
+      <h2 className="text-xl font-black text-amber-800">
+        Suggested Improvements
+      </h2>
+    </div>
+    <div className="space-y-3">{children}</div>
+  </div>
+);
+
+const FeedbackItem = ({ children }) => (
+  <div className="p-4 rounded-xl bg-white/70 border border-amber-200 text-slate-800">
+    {children}
+  </div>
+);
+
+/* ---------------- SIDEBAR ---------------- */
 
 const SidebarPanel = () => {
   const [selectedTask, setSelectedTask] = useState(null);
@@ -99,6 +98,7 @@ const SidebarPanel = () => {
           <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-4">
             Productivity
           </p>
+
           <h3 className="text-xl font-bold text-slate-800 mb-6">
             Jira Recommended Tasks
           </h3>
@@ -112,6 +112,7 @@ const SidebarPanel = () => {
                 <h4 className="text-sm font-bold text-slate-800 mb-1">
                   {task.title}
                 </h4>
+
                 <p className="text-xs text-slate-600 mb-3 line-clamp-2">
                   {task.description}
                 </p>
@@ -126,109 +127,54 @@ const SidebarPanel = () => {
             ))}
           </div>
         </div>
-
-        <div className="glass-card-xl space-y-6">
-          <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold">
-            Next Meeting Schedule
-          </p>
-
-          <h3 className="text-xl font-bold text-slate-800">
-            Calendar
-          </h3>
-
-          <NextMeetingCalendar />
-        </div>
       </div>
 
       {selectedTask && (
-        <JiraModal
-          task={selectedTask}
-          onClose={() => setSelectedTask(null)}
-        />
+        <JiraModal task={selectedTask} onClose={() => setSelectedTask(null)} />
       )}
     </>
   );
 };
 
-const MetricCard = ({ title, value, icon: Icon, color }) => (
-  <div
-    aria-label={`Metric ${title}: ${value}`}
-    className="glass-card-lg hover:-translate-y-2 transition-all duration-500 cursor-pointer"
-  >
-    <div className="flex items-start justify-between">
-      <div
-        className={`p-4 rounded-2xl bg-gradient-to-br ${colorMap[color]} text-white shadow-xl`}
-      >
-        <Icon className="w-8 h-8" />
-      </div>
-
-      <div className="text-right">
-        <p className="text-sm text-slate-500 font-semibold">{title}</p>
-        <h3 className="text-xl font-black text-slate-900">
-          {typeof value === "number" ? value.toLocaleString() : value}
-        </h3>
-      </div>
-    </div>
-  </div>
-);
-
-const SummaryCard = ({ title, children }) => (
-  <div className="glass-card-xl hover:-translate-y-1 transition-all duration-300">
-    <h2 className="text-xl font-black text-indigo-700 mb-4">{title}</h2>
-    <p className="text-slate-700 leading-relaxed">{children}</p>
-  </div>
-);
-
-const FeedbackCard = ({ children }) => (
-  <div className="glass-card-warning hover:-translate-y-1 transition-all duration-300">
-    <div className="flex items-center space-x-4 mb-6">
-      <div className="p-3 rounded-xl bg-amber-500 text-white">
-        <ExclamationTriangleIcon className="w-6 h-6" />
-      </div>
-      <h2 className="text-xl font-black text-amber-800">
-        Suggested Improvements
-      </h2>
-    </div>
-    <div className="space-y-4">{children}</div>
-  </div>
-);
-
-const FeedbackItem = ({ children }) => (
-  <div className="p-4 rounded-xl bg-white/70 border border-amber-200 text-slate-800">
-    {children}
-  </div>
-);
+/* ---------------- DASHBOARD ---------------- */
 
 const Dashboard = () => {
-  const { meetingId } = useParams();
+  const { id: meetingId } = useParams();
   const dispatch = useDispatch();
-  const { data, loading, error } = useSelector((state) => state.dashboard);
+
+  const { data: metrics, loading, error } = useSelector(
+    (state) => state.metrics
+  );
 
   useEffect(() => {
-    dispatch(getDashboardData(meetingId));
+    dispatch(getMeetingMetrics(meetingId));
   }, [dispatch, meetingId]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg font-semibold text-indigo-600">
-          Loading dashboard…
-        </p>
-      </div>
+      <>
+        <HeaderwoLogo />
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-lg font-semibold text-indigo-600">
+            Loading dashboard…
+          </p>
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg font-semibold text-red-600">{error}</p>
-      </div>
+      <>
+        <HeaderwoLogo />
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-lg font-semibold text-red-600">{error}</p>
+        </div>
+      </>
     );
   }
 
-  if (!data) return null;
-
-  const { metrics, summaries, feedback } = data;
+  if (!metrics) return null;
 
   const metricConfig = [
     { title: "Engagement Score", value: metrics.engagement_score, icon: ArrowTrendingUpIcon, color: "green" },
@@ -248,12 +194,13 @@ const Dashboard = () => {
       <div className="min-h-screen bg-hero-gradient p-6 md:p-12">
         <div className="max-w-7xl mx-auto grid grid-cols-12 gap-8">
 
+          {/* LEFT */}
           <div className="col-span-12 lg:col-span-9 space-y-12">
             <div className="relative">
-              <h1 className="text-3xl font-black text-indigo-700 mb-3">
+              <h1 className="text-3xl font-black text-indigo-700 mb-2">
                 Meeting Dashboard
               </h1>
-              <p className="text-slate-600 font-medium">
+              <p className="text-slate-600">
                 AI-powered meeting analytics & insights
               </p>
               <ChartBarIcon className="absolute top-0 right-0 w-20 h-20 text-indigo-300 opacity-40" />
@@ -267,15 +214,16 @@ const Dashboard = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <SummaryCard title="Short Summary">
-                {summaries.short_summary}
+                {metrics.short_summary || "—"}
               </SummaryCard>
+
               <SummaryCard title="Detailed Summary">
-                {summaries.long_summary}
+                {metrics.long_summary || "—"}
               </SummaryCard>
             </div>
 
             <FeedbackCard>
-              {feedback.improvements.map((item, idx) => (
+              {(metrics.improvements || []).map((item, idx) => (
                 <FeedbackItem key={idx}>{item}</FeedbackItem>
               ))}
             </FeedbackCard>
