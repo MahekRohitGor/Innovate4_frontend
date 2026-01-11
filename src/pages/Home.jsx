@@ -4,10 +4,10 @@ import homeContent from "../data/homeContent.json";
 
 // images
 // import heroImage from "../assets/leaf.jpg";
-import uploadImg from "../assets/leaf.jpg";
-import analyticsImg from "../assets/leaf.jpg";
-import summaryImg from "../assets/leaf.jpg";
-import feedbackImg from "../assets/leaf.jpg";
+import uploadImg from "../assets/1.jpg";
+import analyticsImg from "../assets/2.jpg";
+import summaryImg from "../assets/4.png";
+import feedbackImg from "../assets/3.jpg";
 
 const imageMap = {
     "upload.png": uploadImg,
@@ -65,7 +65,7 @@ const Home = () => {
                                 {hero.infoCard.title}
                             </h3>
                             <p className="text-sm text-slate-600">
-                                Key signals S.A.I.L automatically detects from your meetings
+                                Key signals SAIL automatically detects from your meetings
                             </p>
                         </div>
                         <ul className="relative grid grid-cols-1 sm:grid-cols-2 gap-4 text-slate-700 text-sm">
