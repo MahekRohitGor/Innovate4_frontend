@@ -51,3 +51,16 @@ export const fetchMeetingDashboard = async (meetingId) => {
     }, 500);
   });
 };
+
+import { secureFetch } from "../utils/secureFetch";
+
+export const fetchMeetings = async () => {
+  const token = JSON.parse(localStorage.getItem("token"));
+
+  return secureFetch(
+    "http://localhost:3000/api/meeting",
+    {},
+    "GET",
+    token
+  );
+};

@@ -10,7 +10,7 @@ export async function secureFetch(url, requested_data = {}, method = "POST", aut
         }
 
         if(auth_token){
-            headers['Authorization'] = `Bearer ${auth_token}`;
+            headers['authorization'] = `Bearer ${auth_token}`;
         }
 
         const axiosConfig = {
