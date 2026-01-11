@@ -6,6 +6,7 @@ import JiraModal from "../components/JiraModal";
 import { getMeetingMetrics } from "../features/metrics/metricsThunk";
 import MeetingChatbot from "../components/MeetingChatbot";
 import { getMeetingTasks } from "../features/tasks/taskThunk";
+import { downloadMom } from "../services/momApi";
 
 import {
   ArrowTrendingUpIcon,
@@ -156,6 +157,7 @@ const SidebarPanel = () => {
 const Dashboard = () => {
   const { id: meetingId } = useParams();
   const dispatch = useDispatch();
+  const [downloading, setDownloading] = useState(false);
 
   const { data: metrics, loading, error } = useSelector(
     (state) => state.metrics
@@ -208,6 +210,35 @@ const Dashboard = () => {
     { title: "Off Topic Score", value: metrics.off_topic_score, icon: XMarkIcon, color: "red" },
   ];
 
+
+  const handleDownloadMom = async () => {
+    try {
+      setDownloading(true);
+
+      const res = await downloadMom(meetingId);
+      const momFileUrl = res?.data?.momFileUrl;
+
+      if (!momFileUrl) {
+        alert("MOM file not available yet");
+        return;
+      }
+
+      // force download
+      const link = document.createElement("a");
+      link.href = momFileUrl;
+      link.download = `meeting-${meetingId}-mom.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to download MOM");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <>
       <HeaderwoLogo />
@@ -241,6 +272,18 @@ const Dashboard = () => {
               <SummaryCard title="Detailed Summary">
                 {longSummary || "—"}
               </SummaryCard>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={handleDownloadMom}
+                disabled={downloading}
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-sky-500
+               text-white font-semibold shadow-lg hover:shadow-xl
+               hover:scale-[1.03] transition-all disabled:opacity-60"
+              >
+                {downloading ? "Downloading…" : "Download MOM (PDF)"}
+              </button>
             </div>
 
             <FeedbackCard>
