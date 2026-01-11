@@ -5,6 +5,8 @@ import HeaderwoLogo from "../components/HeaderwoLogo";
 import { discussionItems } from "../data/discussionItems";
 import JiraModal from "../components/JiraModal";
 import { getMeetingMetrics } from "../features/metrics/metricsThunk";
+import MeetingChatbot from "../components/MeetingChatbot";
+import { getMeetingTasks } from "../features/tasks/taskThunk";
 
 import {
   ArrowTrendingUpIcon,
@@ -117,12 +119,14 @@ const SidebarPanel = () => {
                   {task.description}
                 </p>
 
-                <button
-                  onClick={() => setSelectedTask(task)}
-                  className="w-full py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition"
-                >
-                  Raise Jira Ticket
-                </button>
+                {task.jira_recommended === "yes" && (
+                    <button
+                      onClick={() => setSelectedTask(task)}
+                      className="w-full py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition"
+                    >
+                      Raise Jira Ticket
+                    </button>
+                  )}
               </div>
             ))}
           </div>
@@ -148,6 +152,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     dispatch(getMeetingMetrics(meetingId));
+    dispatch(getMeetingTasks(meetingId));
+
   }, [dispatch, meetingId]);
 
   if (loading) {
@@ -234,6 +240,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      <MeetingChatbot meetingId={meetingId} />
     </>
   );
 };

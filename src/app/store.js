@@ -3,6 +3,7 @@ import userReducer from "../features/user/userSlice";
 import dashboardReducer from "../features/dashboard/dashboardSlice";
 import calendarReducer from "../features/calendar/calendarSlice";
 import metricsReducer from "../features/metrics/metricSlice";
+import taskReducer from "../features/tasks/taskSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,5 +11,6 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     meetings: calendarReducer,
     metrics: metricsReducer,
+    tasks: taskReducer,
   },
 });
