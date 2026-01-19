@@ -18,9 +18,17 @@ import {
   ExclamationTriangleIcon,
   ChartBarIcon,
   CurrencyDollarIcon,
+  ChatBubbleLeftRightIcon,
+  ClipboardDocumentCheckIcon,
+  CalendarIcon,
   CheckCircleIcon,
   XMarkIcon,
+  DocumentTextIcon,
+  SparklesIcon,
+  ArrowDownTrayIcon
 } from "@heroicons/react/24/outline";
+
+
 
 /* ---------------- COLORS ---------------- */
 
@@ -91,8 +99,11 @@ const FeedbackItem = ({ children }) => (
 const SidebarPanel = () => {
   const { id: meetingId } = useParams();
 
-  const { discussionItems, loading } = useSelector(
-    (state) => state.tasks
+  const { discussionItems, loading,nextActions } = useSelector(
+    (state) => {
+        console.log(state.tasks)
+        return state.tasks
+    }
   );
 
   const [submittingId, setSubmittingId] = useState(null);
@@ -112,48 +123,57 @@ const SidebarPanel = () => {
   };
 
   return (
-    <div className="sticky top-24 space-y-8">
-      <div className="glass-card-xl">
-        <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-4">
+  <div className="sticky top-24 space-y-8">
+    <div className="glass-card-xl p-6 md:p-8 bg-white rounded-3xl shadow-sm border border-slate-100">
+      
+      {/* GLOBAL LABEL */}
+      <div className="flex items-center justify-between mb-6">
+        <p className="text-xs uppercase tracking-widest text-slate-400 font-bold">
           Productivity
         </p>
+        <span className="text-xs font-medium px-2 py-1 bg-slate-100 text-slate-500 rounded-md">
+           {discussionItems.length + nextActions.length} Items
+        </span>
+      </div>
 
-        <h3 className="text-xl font-bold text-slate-800 mb-6">
-          Discussion Items
-        </h3>
+      {/* ================= SECTION 1: DISCUSSION ================= */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <ChatBubbleLeftRightIcon className="w-5 h-5 text-indigo-500" />
+          <h3 className="text-lg font-bold text-slate-800">Discussion Topics</h3>
+        </div>
 
         {loading ? (
-          <p className="text-sm text-slate-500">Loading tasks…</p>
+          <div className="animate-pulse space-y-3">
+             <div className="h-16 bg-slate-50 rounded-xl"></div>
+             <div className="h-16 bg-slate-50 rounded-xl"></div>
+          </div>
         ) : discussionItems.length === 0 ? (
-          <p className="text-sm text-slate-500">
-            No discussion items found.
-          </p>
+          <p className="text-sm text-slate-400 italic">No topics recorded.</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {discussionItems.map((task) => (
-              <div
-                key={task._id}
-                className="p-4 rounded-xl bg-slate-50 border border-slate-200"
-              >
-                <h4 className="text-sm font-bold text-slate-800 mb-1">
-                  {task.title}
-                </h4>
-
-                <p className="text-xs text-slate-600 mb-3 line-clamp-3">
+              <div key={task._id} className="group p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-indigo-200 transition-colors">
+                <h4 className="text-sm font-bold text-slate-800 mb-1">{task.title}</h4>
+                <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
                   {task.description}
                 </p>
-
+                
+                {/* JIRA ACTION */}
                 {task.jira_recommended === "yes" && (
                   <button
                     onClick={() => handleRaiseJira(task._id)}
                     disabled={submittingId === task._id}
-                    className="w-full py-2 rounded-lg bg-indigo-600 text-white
-                      text-sm font-semibold hover:bg-indigo-700 transition
-                      disabled:opacity-60"
+                    className="mt-3 w-full py-2 rounded-lg bg-white border border-indigo-100 text-indigo-600 text-xs font-bold shadow-sm hover:bg-indigo-50 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    {submittingId === task._id
-                      ? "Creating Ticket…"
-                      : "Raise Jira Ticket"}
+                    {submittingId === task._id ? (
+                      <span className="animate-pulse">Creating...</span>
+                    ) : (
+                      <>
+                        <img src="https://cdn.iconscout.com/icon/free/png-256/free-jira-logo-icon-download-in-svg-png-gif-file-formats--technology-social-media-vol-4-pack-logos-icons-2944948.png" alt="Jira" className="w-3 h-3" />
+                        Raise Ticket
+                      </>
+                    )}
                   </button>
                 )}
               </div>
@@ -161,8 +181,58 @@ const SidebarPanel = () => {
           </div>
         )}
       </div>
+
+      {/* ================= VISUAL DIVIDER ================= */}
+      <div className="my-8 border-t border-slate-100 relative">
+         {/* Optional: Little anchor dot in center of divider */}
+         <div className="absolute left-1/2 -top-1.5 -ml-1.5 w-3 h-3 bg-slate-100 rounded-full border-2 border-white"></div>
+      </div>
+
+      {/* ================= SECTION 2: NEXT ACTIONS ================= */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <ClipboardDocumentCheckIcon className="w-5 h-5 text-emerald-500" />
+          <h3 className="text-lg font-bold text-slate-800">Action Items</h3>
+        </div>
+
+        {loading ? (
+          <div className="animate-pulse space-y-3">
+             <div className="h-16 bg-slate-50 rounded-xl"></div>
+          </div>
+        ) : nextActions.length === 0 ? (
+           <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+             <p className="text-sm text-slate-400">No actions detected.</p>
+           </div>
+        ) : (
+          <div className="space-y-3">
+            {nextActions.map((task) => (
+              <div key={task._id} className="p-4 rounded-xl bg-white border border-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all">
+                
+                {/* Header with Fake Checkbox */}
+                <div className="flex items-start gap-3">
+                   <div className="mt-0.5 w-4 h-4 rounded border-2 border-slate-300 flex-shrink-0"></div>
+                   <div>
+                      <h4 className="text-sm font-bold text-slate-800 leading-snug">
+                        {task.action_item}
+                      </h4>
+                      {task.description && (
+                        <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                           {task.description}
+                        </p>
+                      )}
+                   </div>
+                </div>
+
+                
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
     </div>
-  );
+  </div>
+);
 };
 
 
@@ -256,62 +326,111 @@ const Dashboard = () => {
   return (
     <>
       <HeaderwoLogo />
+  <div className="min-h-screen bg-slate-50 p-6 md:p-8 lg:p-12 font-sans text-slate-900">
+    <div className="max-w-7xl mx-auto">
+      
+      {/* --- 1. HEADER SECTION (Action Oriented) --- */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider">
+              Analysis Ready
+            </span>
+          </div>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+            Meeting Insights
+          </h1>
+          <p className="text-slate-500 mt-2 text-lg">
+            AI-powered breakdown of your conversation.
+          </p>
+        </div>
 
-      <div className="min-h-screen bg-hero-gradient p-6 md:p-12">
-        <div className="max-w-7xl mx-auto grid grid-cols-12 gap-8">
+        {/* Primary Action Moved Top Right */}
+        <button
+          onClick={handleDownloadMom}
+          disabled={downloading}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-900 text-white font-bold shadow-lg hover:bg-slate-800 hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {downloading ? (
+             <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+          ) : (
+             <ArrowDownTrayIcon className="w-5 h-5" />
+          )}
+          <span>{downloading ? "Generating PDF..." : "Download Mom"}</span>
+        </button>
+      </div>
 
-          {/* LEFT */}
-          <div className="col-span-12 lg:col-span-9 space-y-12">
-            <div className="relative">
-              <h1 className="text-3xl font-black text-indigo-700 mb-2">
-                Meeting Dashboard
-              </h1>
-              <p className="text-slate-600">
-                AI-powered meeting analytics & insights
-              </p>
-              <ChartBarIcon className="absolute top-0 right-0 w-20 h-20 text-indigo-300 opacity-40" />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-              {metricConfig.map((m, i) => (
-                <MetricCard key={i} {...m} />
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <SummaryCard title="Short Summary">
-                {shortSummary || "—"}
-              </SummaryCard>
-
-              <SummaryCard title="Detailed Summary">
-                {longSummary || "—"}
-              </SummaryCard>
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                onClick={handleDownloadMom}
-                disabled={downloading}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-sky-500
-               text-white font-semibold shadow-lg hover:shadow-xl
-               hover:scale-[1.03] transition-all disabled:opacity-60"
-              >
-                {downloading ? "Downloading…" : "Download MOM (PDF)"}
-              </button>
-            </div>
-
-            {/* <FeedbackCard>
-              {(metrics.improvements || []).map((item, idx) => (
-                <FeedbackItem key={idx}>{item}</FeedbackItem>
-              ))}
-            </FeedbackCard> */}
+      <div className="grid grid-cols-12 gap-8 items-start">
+        
+        {/* --- LEFT MAIN CONTENT (9 Columns) --- */}
+        <div className="col-span-12 lg:col-span-9 space-y-8">
+          
+          {/* A. METRICS ROW (Clean Cards) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {metricConfig.map((m, i) => (
+              <MetricCard key={i} {...m} /> 
+              // *Tip: Ensure MetricCard has bg-white, rounded-2xl, and shadow-sm
+            ))}
           </div>
 
-          <div className="col-span-12 lg:col-span-3">
-            <SidebarPanel />
+          {/* B. EXECUTIVE SUMMARY (The "Highlight" Box) */}
+          <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl p-8 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
+            {/* Background Decoration */}
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4 text-indigo-100">
+                <SparklesIcon className="w-6 h-6" />
+                <h3 className="font-bold text-lg tracking-wide uppercase">Executive Brief</h3>
+              </div>
+              <p className="text-xl md:text-2xl font-medium leading-relaxed opacity-95">
+                {shortSummary || "Generating summary..."}
+              </p>
+            </div>
+          </div>
+
+          {/* C. DETAILED CONTENT (Document Style) */}
+          <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
+              <DocumentTextIcon className="w-6 h-6 text-slate-400" />
+              <h3 className="text-xl font-bold text-slate-800">Detailed Breakdown</h3>
+            </div>
+            
+            <div className="prose prose-slate prose-lg max-w-none text-slate-600 leading-loose">
+              {longSummary ? (
+                 <div className="whitespace-pre-line">{longSummary}</div>
+              ) : (
+                 <p className="italic text-slate-400">Analysis pending...</p>
+              )}
+            </div>
+          </div>
+
+          {/* D. FEEDBACK SECTION (If available) */}
+          {/* <div className="bg-orange-50 rounded-3xl p-8 border border-orange-100">
+             <h3 className="text-orange-800 font-bold mb-4">Areas for Improvement</h3>
+             ... map your feedback items here ...
+          </div> */}
+
+        </div>
+
+        {/* --- RIGHT SIDEBAR (3 Columns - Sticky) --- */}
+        <div className="col-span-12 lg:col-span-3 lg:sticky lg:top-8">
+          <div className="space-y-6">
+             {/* Sidebar Content */}
+             <SidebarPanel />
+             
+             {/* Optional: Quick Help Card */}
+             <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                <h4 className="text-blue-900 font-bold text-sm mb-2">Need help?</h4>
+                <p className="text-blue-700 text-xs">If the metrics look off, try re-uploading the file or checking the transcript quality.</p>
+             </div>
           </div>
         </div>
+
       </div>
+    </div>
+  </div>
+);
       <MeetingChatbot meetingId={meetingId} />
     </>
   );

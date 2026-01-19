@@ -13,6 +13,7 @@ export const getMeetingTasks = createAsyncThunk(
           data.meetingTasks?.[0]?.discussion_items || [],
         shortSummary: data.shortSummary || "",
         longSummary: data.longSummary || "",
+        nextActions:data.meetingTasks?.[0]?.next_actions || []
       };
     } catch (err) {
       return rejectWithValue(

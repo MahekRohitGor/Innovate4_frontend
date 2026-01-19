@@ -3,6 +3,7 @@ import { getMeetingTasks } from "./taskThunk";
 
 const initialState = {
   discussionItems: [],
+  nextActions:[],
   shortSummary: "",
   longSummary: "",
   loading: false,
@@ -22,6 +23,7 @@ const taskSlice = createSlice({
       .addCase(getMeetingTasks.fulfilled, (state, action) => {
         state.loading = false;
         state.discussionItems = action.payload.discussionItems;
+        state.nextActions = action.payload.nextActions;
         state.shortSummary = action.payload.shortSummary;
         state.longSummary = action.payload.longSummary;
       })

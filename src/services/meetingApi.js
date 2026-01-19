@@ -1,3 +1,5 @@
+import { secureFetch } from "../utils/secureFetch";
+
 const fakeDelay = (ms = 800) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -52,13 +54,23 @@ export const fetchMeetingDashboard = async (meetingId) => {
   });
 };
 
-import { secureFetch } from "../utils/secureFetch";
+export const fetchMeetingById = async (meetingId) => {
+  const token = JSON.parse(localStorage.getItem("token"));
+  return secureFetch(
+    `http://localhost:3000/api/meeting/${meetingId}`, 
+    {}, 
+    "GET", 
+    token
+  );
+};
 
-export const fetchMeetings = async () => {
+
+
+export const fetchMeetings = async ({page,limit}) => {
   const token = JSON.parse(localStorage.getItem("token"));
 
   return secureFetch(
-    "http://localhost:3000/api/meeting",
+    `http://localhost:3000/api/meeting?page=${page}&limit=${limit}`,
     {},
     "GET",
     token
