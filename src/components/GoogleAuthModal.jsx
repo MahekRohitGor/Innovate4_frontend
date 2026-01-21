@@ -1,4 +1,12 @@
-const GoogleAuthModal = ({ userId, onClose }) => {
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+
+
+const GoogleAuthModal = ({ userId }) => {
+  
+  const [isModalOpen, setIsModalOpen] = useState(true);
+  const navigate = useNavigate();
   const handleGoogleAuth = async () => {
     try {
       const res = await fetch(
@@ -12,6 +20,14 @@ const GoogleAuthModal = ({ userId, onClose }) => {
     } catch (err) {
       console.error("Google auth error", err);
     }
+  };
+
+  if(!isModalOpen){
+    return null;
+  }
+
+  const onClose = () => {
+    navigate("/calender")
   };
 
   return (
@@ -33,12 +49,12 @@ const GoogleAuthModal = ({ userId, onClose }) => {
           Continue with Google
         </button>
 
-        {/* <button
+        <button
           onClick={onClose}
-          className="mt-4 text-sm text-slate-500 hover:underline"
+          className="cursor-pointer mt-4 text-sm text-slate-500 hover:underline"
         >
           Do this later
-        </button> */}
+        </button>
       </div>
     </div>
   );

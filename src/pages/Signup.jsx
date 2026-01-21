@@ -21,6 +21,8 @@ const Signup = () => {
     dispatch(signup(payload));
   };
 
+  
+
   return (
     <>
       <HeaderwoLogo />

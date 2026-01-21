@@ -23,3 +23,23 @@ export const login = createAsyncThunk('user/login', async(req_data) => {
     const response = await secureFetch(url, req_data, 'POST');
     return response;
 })
+
+
+export const getUserInfo = createAsyncThunk(
+  "user/getUserInfo",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = JSON.parse(localStorage.getItem("token"));
+      const response = await secureFetch(
+        "http://localhost:3000/api/user/getProfile",
+        {},
+        "GET",
+        token
+      );
+      
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);

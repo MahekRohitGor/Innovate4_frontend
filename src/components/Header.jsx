@@ -4,13 +4,13 @@ import { useSelector } from "react-redux";
 
 const HeaderwoLogo = () => {
   // from redux
-  const { isAuthenticated, user } = useSelector((state) => state.user);
+  const { isAuthenticated} = useSelector((state) => state.user);
 
   // fallback for refresh
   const token = localStorage.getItem("token");
 
   const loggedIn = isAuthenticated || token;
-  console.log("user: ", user);
+  
 
   return (
     <header className="w-full px-4 sm:px-6 lg:px-8 py-2 bg-white/80 backdrop-blur-md border-b border-green-100/50 shadow-sm sticky top-0 z-50">
