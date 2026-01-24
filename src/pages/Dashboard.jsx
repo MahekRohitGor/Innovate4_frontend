@@ -108,11 +108,11 @@ const SidebarPanel = () => {
 
   const [submittingId, setSubmittingId] = useState(null);
 
-  const handleRaiseJira = async () => {
+  const handleRaiseJira = async (taskId,index) => {
     try {
-      console.log("Raising Jira ticket for task:", meetingId);
+      console.log("Raising Jira ticket for task:", meetingId,index);
       setSubmittingId(meetingId)
-      await raiseJiraTicket(meetingId);
+      await raiseJiraTicket(meetingId,index);
       alert("Jira ticket raised successfully");
     } catch (err) {
       console.error(err);
@@ -152,7 +152,7 @@ const SidebarPanel = () => {
           <p className="text-sm text-slate-400 italic">No topics recorded.</p>
         ) : (
           <div className="space-y-3">
-            {discussionItems.map((task) => (
+            {discussionItems.map((task,i) => (
               <div key={task._id} className="group p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-indigo-200 transition-colors">
                 <h4 className="text-sm font-bold text-slate-800 mb-1">{task.title}</h4>
                 <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
@@ -162,7 +162,7 @@ const SidebarPanel = () => {
                 {/* JIRA ACTION */}
                 {task.jira_recommended === "yes" && (
                   <button
-                    onClick={() => handleRaiseJira(task._id)}
+                    onClick={() => handleRaiseJira(task._id,i)}
                     disabled={submittingId === task._id}
                     className="mt-3 w-full py-2 rounded-lg bg-white border border-indigo-100 text-indigo-600 text-xs font-bold shadow-sm hover:bg-indigo-50 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   >

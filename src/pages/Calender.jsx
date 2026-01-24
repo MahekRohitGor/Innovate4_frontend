@@ -36,19 +36,6 @@ const Calendar = () => {
 
   const { user,loading:userLoading } = useSelector((state) => state.user);
   
-  
-  
-
-  
-
-  
-
-  
-
-
-
-  
-
   // --- 2. FETCH DATA ON PAGE CHANGE ---
   useEffect(() => {
     
