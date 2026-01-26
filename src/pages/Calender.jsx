@@ -36,6 +36,7 @@ const Calendar = () => {
 
   const { user,loading:userLoading } = useSelector((state) => state.user);
   
+  
   // --- 2. FETCH DATA ON PAGE CHANGE ---
   useEffect(() => {
     
@@ -47,6 +48,7 @@ const Calendar = () => {
 
   useEffect(()=>{
     const token =localStorage.getItem("token");
+    console.log("User in Calendar component:", user,token);
     if(!user && token){
       dispatch(getUserInfo());
     }
@@ -70,8 +72,9 @@ const Calendar = () => {
 
   const handleGoogleAuth = async () => {
     try {
-      const userId = user.id;
-      
+
+      const userId = user?._id || user?.id;
+      console.log("User ID for Google Auth:", userId);
       const res = await fetch(
         `http://localhost:3000/api/user/googleSignup?userId=${userId}`
       );

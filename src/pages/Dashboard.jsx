@@ -8,7 +8,8 @@ import MeetingChatbot from "../components/MeetingChatbot";
 import { getMeetingTasks } from "../features/tasks/taskThunk";
 import { downloadMom } from "../services/momApi";
 import { raiseJiraTicket } from "../services/jiraApi";
-
+import {connectToJira} from "../services/connectJiraApi";
+import { getUserInfo } from "../features/user/userThunks";
 
 import {
   ArrowTrendingUpIcon,
@@ -98,6 +99,15 @@ const FeedbackItem = ({ children }) => (
 
 const SidebarPanel = () => {
   const { id: meetingId } = useParams();
+  const {user,loading:userLoading}=useSelector((state)=>state.user);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+  const token =localStorage.getItem("token");
+  if(!user && token){
+    dispatch(getUserInfo());
+  }
+}, [user]);
 
   const { discussionItems, loading,nextActions } = useSelector(
     (state) => {
@@ -107,6 +117,33 @@ const SidebarPanel = () => {
   );
 
   const [submittingId, setSubmittingId] = useState(null);
+
+  
+
+  const handleConnectJira = async () => {
+    try {
+      console.log("Connecting to Jira for user:", user._id);
+      const userId = user._id;
+      const res = await fetch(
+        `http://localhost:3000/api/user/jiraSignup?meetingId=${meetingId}`
+      );
+      const data = await res.json();
+
+      if (data.success) {
+        window.location.href = data.data.auth_url;
+      }
+    } catch (err) {
+      console.error("Google auth error", err);
+    }
+  };
+
+  const handleButtonClick = async (task, index) => {
+  if (!user?.isJiraSynced) {
+    await handleConnectJira(); 
+    return;
+  }
+  await handleRaiseJira(task._id, index);
+};
 
   const handleRaiseJira = async (taskId,index) => {
     try {
@@ -123,117 +160,160 @@ const SidebarPanel = () => {
   };
 
   return (
-  <div className="sticky top-24 space-y-8">
-    <div className="glass-card-xl p-6 md:p-8 bg-white rounded-3xl shadow-sm border border-slate-100">
-      
-      {/* GLOBAL LABEL */}
-      <div className="flex items-center justify-between mb-6">
-        <p className="text-xs uppercase tracking-widest text-slate-400 font-bold">
-          Productivity
-        </p>
-        <span className="text-xs font-medium px-2 py-1 bg-slate-100 text-slate-500 rounded-md">
-           {discussionItems.length + nextActions.length} Items
-        </span>
-      </div>
-
-      {/* ================= SECTION 1: DISCUSSION ================= */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <ChatBubbleLeftRightIcon className="w-5 h-5 text-indigo-500" />
-          <h3 className="text-lg font-bold text-slate-800">Discussion Topics</h3>
+    <div className="sticky top-24 space-y-8">
+      <div className="glass-card-xl p-6 md:p-8 bg-white rounded-3xl shadow-sm border border-slate-100">
+        {/* GLOBAL LABEL */}
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-xs uppercase tracking-widest text-slate-400 font-bold">
+            Productivity
+          </p>
+          <span className="text-xs font-medium px-2 py-1 bg-slate-100 text-slate-500 rounded-md">
+            {discussionItems.length + nextActions.length} Items
+          </span>
         </div>
 
-        {loading ? (
-          <div className="animate-pulse space-y-3">
-             <div className="h-16 bg-slate-50 rounded-xl"></div>
-             <div className="h-16 bg-slate-50 rounded-xl"></div>
+        {/* ================= SECTION 1: DISCUSSION ================= */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <ChatBubbleLeftRightIcon className="w-5 h-5 text-indigo-500" />
+            <h3 className="text-lg font-bold text-slate-800">
+              Discussion Topics
+            </h3>
           </div>
-        ) : discussionItems.length === 0 ? (
-          <p className="text-sm text-slate-400 italic">No topics recorded.</p>
-        ) : (
-          <div className="space-y-3">
-            {discussionItems.map((task,i) => (
-              <div key={task._id} className="group p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-indigo-200 transition-colors">
-                <h4 className="text-sm font-bold text-slate-800 mb-1">{task.title}</h4>
-                <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                  {task.description}
-                </p>
-                
-                {/* JIRA ACTION */}
-                {task.jira_recommended === "yes" && (
-                  <button
-                    onClick={() => handleRaiseJira(task._id,i)}
-                    disabled={submittingId === task._id}
-                    className="mt-3 w-full py-2 rounded-lg bg-white border border-indigo-100 text-indigo-600 text-xs font-bold shadow-sm hover:bg-indigo-50 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {submittingId === task._id ? (
-                      <span className="animate-pulse">Creating...</span>
-                    ) : (
-                      <>
-                        <img src="https://cdn.iconscout.com/icon/free/png-256/free-jira-logo-icon-download-in-svg-png-gif-file-formats--technology-social-media-vol-4-pack-logos-icons-2944948.png" alt="Jira" className="w-3 h-3" />
-                        Raise Ticket
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
 
-      {/* ================= VISUAL DIVIDER ================= */}
-      <div className="my-8 border-t border-slate-100 relative">
-         {/* Optional: Little anchor dot in center of divider */}
-         <div className="absolute left-1/2 -top-1.5 -ml-1.5 w-3 h-3 bg-slate-100 rounded-full border-2 border-white"></div>
-      </div>
+          {loading ? (
+            <div className="animate-pulse space-y-3">
+              <div className="h-16 bg-slate-50 rounded-xl"></div>
+              <div className="h-16 bg-slate-50 rounded-xl"></div>
+            </div>
+          ) : discussionItems.length === 0 ? (
+            <p className="text-sm text-slate-400 italic">No topics recorded.</p>
+          ) : (
+            <div className="space-y-3">
+              {discussionItems.map((task, i) => (
+                <div
+                  key={task._id}
+                  className="group p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-indigo-200 transition-colors"
+                >
+                  <h4 className="text-sm font-bold text-slate-800 mb-1">
+                    {task.title}
+                  </h4>
+                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                    {task.description}
+                  </p>
 
-      {/* ================= SECTION 2: NEXT ACTIONS ================= */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <ClipboardDocumentCheckIcon className="w-5 h-5 text-emerald-500" />
-          <h3 className="text-lg font-bold text-slate-800">Action Items</h3>
+                  {/* JIRA ACTION */}
+                  {task.jira_recommended === "yes" && (
+                    <button
+
+                      onClick={() => handleButtonClick(task, i)}
+                      disabled={
+                        submittingId === task._id ||
+                        task.jiraStatus === "created"
+                      }
+                      // 3. DYNAMIC STYLING
+                      className={`mt-3 w-full py-2 rounded-lg text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-all 
+      ${
+        // STYLE A: Ticket Already Raised (Green & Disabled)
+        task.jiraStatus === "RAISED"
+          ? "bg-green-50 border border-green-200 text-green-700 cursor-not-allowed opacity-100" // opacity-100 keeps it readable
+          : // STYLE B: Normal Action (Blue/Indigo)
+            "bg-white border border-indigo-100 text-indigo-600 hover:bg-indigo-50 disabled:opacity-50"
+      }`}
+                    >
+                      {submittingId === task._id ? (
+                        <span className="animate-pulse">Creating...</span>
+                      ) : (
+                        <>
+                          {task.jiraStatus === "RAISED" ? (
+                            <>
+                              <span>✓</span>
+                              {/* Show Key if available, else just "Raised" */}
+                              <span>
+                                {task.jiraTicketKey
+                                  ? `Ticket ${task.jiraTicketKey}`
+                                  : "Ticket Created"}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <img
+                                src="https://cdn.iconscout.com/icon/free/png-256/free-jira-logo-icon-download-in-svg-png-gif-file-formats--technology-social-media-vol-4-pack-logos-icons-2944948.png"
+                                alt="Jira"
+                                className="w-3 h-3"
+                              />
+                              {/* Toggle Text based on Sync Status */}
+                              {!user?.isJiraSynced
+                                ? "Connect Jira"
+                                : "Raise Ticket"}
+                            </>
+                          )}
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {loading ? (
-          <div className="animate-pulse space-y-3">
-             <div className="h-16 bg-slate-50 rounded-xl"></div>
+        {/* ================= VISUAL DIVIDER ================= */}
+        <div className="my-8 border-t border-slate-100 relative">
+          {/* Optional: Little anchor dot in center of divider */}
+          <div className="absolute left-1/2 -top-1.5 -ml-1.5 w-3 h-3 bg-slate-100 rounded-full border-2 border-white"></div>
+        </div>
+
+        {/* ================= SECTION 2: NEXT ACTIONS ================= */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <ClipboardDocumentCheckIcon className="w-5 h-5 text-emerald-500" />
+            <h3 className="text-lg font-bold text-slate-800">Action Items</h3>
           </div>
-        ) : nextActions.length === 0 ? (
-           <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-             <p className="text-sm text-slate-400">No actions detected.</p>
-           </div>
-        ) : (
-          <div className="space-y-3">
-            {nextActions.map((task) => (
-              <div key={task._id} className="p-4 rounded-xl bg-white border border-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all">
-                
-                {/* Header with Fake Checkbox */}
-                <div className="flex items-start gap-3">
-                   <div className="mt-0.5 w-4 h-4 rounded border-2 border-slate-300 flex-shrink-0"></div>
-                   <div>
+
+          {loading ? (
+            <div className="animate-pulse space-y-3">
+              <div className="h-16 bg-slate-50 rounded-xl"></div>
+            </div>
+          ) : nextActions.length === 0 ? (
+            <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              <p className="text-sm text-slate-400">No actions detected.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {nextActions.map((task) => (
+                <div
+                  key={task._id}
+                  className="p-4 rounded-xl bg-white border border-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all"
+                >
+                  {/* Header with Fake Checkbox */}
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 w-4 h-4 rounded border-2 border-slate-300 flex-shrink-0"></div>
+                    <div>
                       <h4 className="text-sm font-bold text-slate-800 leading-snug">
                         {task.action_item}
                       </h4>
                       {task.description && (
                         <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                           {task.description}
+                          {task.description}
                         </p>
                       )}
-                   </div>
+                    </div>
+                  </div>
                 </div>
-
-                
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-
     </div>
-  </div>
-);
+  );
 };
+
+
+
+
+
 
 
 /* ---------------- DASHBOARD ---------------- */
@@ -242,6 +322,7 @@ const Dashboard = () => {
   const { id: meetingId } = useParams();
   const dispatch = useDispatch();
   const [downloading, setDownloading] = useState(false);
+  const { user, loading: userLoading } = useSelector((state) => state.user);
 
   const { data: metrics, loading, error } = useSelector(
     (state) => state.metrics
@@ -251,13 +332,19 @@ const Dashboard = () => {
     (state) => state.tasks
   );
 
+  
+
+  
+
   useEffect(() => {
     dispatch(getMeetingMetrics(meetingId));
     dispatch(getMeetingTasks(meetingId));
 
   }, [dispatch, meetingId]);
 
-  if (loading) {
+ 
+
+  if (loading && userLoading) {
     return (
       <>
         <HeaderwoLogo />
