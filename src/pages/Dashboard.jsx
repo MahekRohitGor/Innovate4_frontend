@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 import HeaderwoLogo from "../components/HeaderwoLogo";
 import JiraModal from "../components/JiraModal";
 import { getMeetingMetrics } from "../features/metrics/metricsThunk";
@@ -323,6 +324,9 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const [downloading, setDownloading] = useState(false);
   const { user, loading: userLoading } = useSelector((state) => state.user);
+  const [momStatus, setMomStatus] = useState("loading"); // loading | pending | processing | completed | failed
+  const pollingRef = useRef(null);
+  const token = JSON.parse(localStorage.getItem("token"));
 
   const { data: metrics, loading, error } = useSelector(
     (state) => state.metrics
@@ -332,18 +336,143 @@ const Dashboard = () => {
     (state) => state.tasks
   );
 
-  
-
-  
+  // --- MomStatus Polling ---
+  const fetchStatus = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:3000/api/meeting/${meetingId}/status`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const status = res.data.data.momStatus;
+      setMomStatus(status);
+      return status;
+    } catch (err) {
+      console.error("Status fetch error:", err);
+      return null;
+    }
+  };
 
   useEffect(() => {
-    dispatch(getMeetingMetrics(meetingId));
-    dispatch(getMeetingTasks(meetingId));
+    const startPolling = async () => {
+      const status = await fetchStatus();
 
+      if (status === "completed") {
+        // Data is ready — fetch everything
+        dispatch(getMeetingMetrics(meetingId));
+        dispatch(getMeetingTasks(meetingId));
+        return;
+      }
+
+      if (status === "failed") return; // Show error UI
+
+      // Status is pending or processing — start polling
+      pollingRef.current = setInterval(async () => {
+        const s = await fetchStatus();
+        if (s === "completed") {
+          clearInterval(pollingRef.current);
+          dispatch(getMeetingMetrics(meetingId));
+          dispatch(getMeetingTasks(meetingId));
+        } else if (s === "failed") {
+          clearInterval(pollingRef.current);
+        }
+      }, 5000);
+    };
+
+    startPolling();
+
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
   }, [dispatch, meetingId]);
 
- 
+  // --- Processing Overlay (pending / processing) ---
+  if (momStatus === "loading" || momStatus === "pending" || momStatus === "processing") {
+    const stageText = {
+      loading: "Checking status...",
+      pending: "Queued for processing...",
+      processing: "AI is analyzing your meeting...",
+    };
+    const stageSubtext = {
+      loading: "Please wait",
+      pending: "Your audio file is in the queue. This page will auto-update.",
+      processing: "Transcribing audio, generating metrics, and building your MoM. This page will auto-update.",
+    };
 
+    return (
+      <>
+        <HeaderwoLogo />
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-blue-50 flex items-center justify-center">
+          <div className="text-center space-y-8 max-w-md px-6">
+            {/* Animated spinner */}
+            <div className="relative mx-auto w-24 h-24">
+              <div className="absolute inset-0 rounded-full border-4 border-indigo-100"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-indigo-600 animate-spin"></div>
+              <div className="absolute inset-3 rounded-full border-4 border-transparent border-t-violet-500 animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
+              <div className="absolute inset-6 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              </div>
+            </div>
+
+            <div>
+              <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-3">
+                {momStatus === "pending" ? "Queued" : momStatus === "processing" ? "Processing" : "Loading"}
+              </span>
+              <h2 className="text-2xl font-black text-slate-900">{stageText[momStatus]}</h2>
+              <p className="text-slate-500 mt-2">{stageSubtext[momStatus]}</p>
+            </div>
+
+            {/* Progress steps */}
+            <div className="space-y-3 text-left bg-white/60 backdrop-blur rounded-2xl p-6 border border-white/50">
+              {[
+                { label: "Audio uploaded", done: true },
+                { label: "Transcribing audio", done: momStatus === "processing" },
+                { label: "Analyzing metrics", done: false },
+                { label: "Generating MoM", done: false },
+              ].map((step, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${step.done ? 'bg-emerald-500 text-white' : 'border-2 border-slate-200'}`}>
+                    {step.done && '✓'}
+                  </div>
+                  <span className={`text-sm font-medium ${step.done ? 'text-slate-800' : 'text-slate-400'}`}>{step.label}</span>
+                  {!step.done && i === (momStatus === "pending" ? 1 : 2) && (
+                    <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin ml-auto"></div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // --- Failed State ---
+  if (momStatus === "failed") {
+    return (
+      <>
+        <HeaderwoLogo />
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-orange-50 flex items-center justify-center">
+          <div className="text-center space-y-6 max-w-md px-6">
+            <div className="w-20 h-20 mx-auto bg-red-100 text-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-100">
+              <ExclamationTriangleIcon className="w-10 h-10" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-900">Processing Failed</h2>
+            <p className="text-slate-500">Something went wrong while analyzing your meeting. Please try re-uploading the recording.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // --- Normal loading (fetching metrics after status is completed) ---
   if (loading && userLoading) {
     return (
       <>
